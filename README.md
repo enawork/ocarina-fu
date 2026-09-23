@@ -9,6 +9,8 @@
 - スコアの共有（一覧の「共有」でリンクを作成。開いた人は自分の一覧に追加できる）
 
 ## 使い方
+スマホでは公開URLを開いて「ホーム画面に追加」（iPhone は Safari の共有ボタンから、Android は Chrome のメニューから）するとアプリとして使える。一度開けばオフラインでも動く。
+
 `index.html` をブラウザで開くだけ。ビルド不要。
 GitHub Pages へは `.github/workflows/pages.yml` で `main` への push 時に自動デプロイされる。
 初回のみ Settings → Pages → Build and deployment の Source を「GitHub Actions」に設定する。
