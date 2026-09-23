@@ -151,6 +151,34 @@ details.help summary{font-weight:700;cursor:pointer}
 .tempo{display:flex;align-items:center;gap:8px;font-size:14px}
 .tempo input{flex:1;max-width:260px;accent-color:var(--accent)}
 @media (max-width:420px){.now .fing{width:120px}.nowname{font-size:32px}}
+.listops{display:flex;flex-wrap:wrap;gap:8px}
+#vTune .meter .zone{left:40%;width:20%}
+#tNeedle{position:absolute;top:0;bottom:0;width:6px;margin-left:-3px;border-radius:3px;background:var(--ink);left:50%;display:none}
+#tNeedle.good{background:var(--ok)}
+.tprog{height:4px;border-radius:2px;background:var(--line);margin-top:8px;overflow:hidden}
+.tprog span{display:block;height:100%;width:0;background:var(--ok)}
+#tStatus{font-weight:700;min-height:1.6em;margin-top:4px}
+.tsum{background:var(--surface);border-radius:16px;padding:12px 14px;margin:6px 0 10px;font-size:14px}
+.tsum p{margin:2px 0}
+.tsum strong{font-size:16px}
+h2.sub{font-size:17px;margin:18px 0 6px}
+.tres{list-style:none;margin:0;padding:0;background:var(--surface);border-radius:16px;overflow:hidden}
+.tres li{display:grid;grid-template-columns:4.2em 1fr 7.6em;align-items:center;gap:8px;padding:0 12px;min-height:40px;border-top:1px solid var(--line);cursor:pointer}
+.tres li:first-child{border-top:0}
+.tres li.cur{background:var(--cur-bg)}
+.tres .tn{font-weight:900;font-size:14px}
+.tres .tv{font-size:13px;text-align:right;white-space:nowrap}
+.tres .tv b{font-variant-numeric:tabular-nums}
+.tbar{position:relative;height:16px}
+.tbar::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.tbar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--muted);opacity:.6}
+.tbar i{position:absolute;top:3px;bottom:3px;border-radius:4px;background:var(--ok)}
+.tbar i.l{border-radius:4px 0 0 4px}.tbar i.r{border-radius:0 4px 4px 0}
+.tbar i.warn{background:var(--accent)}.tbar i.bad{background:var(--ng)}
+.tv .ok{color:var(--ok)}.tv .bad{color:var(--ng)}.tv .na{color:var(--muted)}
+.tscale{display:grid;grid-template-columns:4.2em 1fr 7.6em;gap:8px;padding:0 12px;font-size:11px;color:var(--muted)}
+.tscale div{display:flex;justify-content:space-between}
+.refin{width:4.2em;font:inherit;padding:4px 6px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 </style>
 </head>
@@ -163,7 +191,10 @@ details.help summary{font-weight:700;cursor:pointer}
   </div>
   <p class="lead">指の図と音の長さで読むTAB譜。自分でスコアを作って、マイクで音程を確かめながら練習できます。</p>
   <div id="incoming" class="incoming" hidden></div>
-  <button class="btn primary" id="newBtn">＋ 新しいスコア</button>
+  <div class="listops">
+    <button class="btn primary" id="newBtn">＋ 新しいスコア</button>
+    <button class="btn" id="tuneBtn">チューニング確認</button>
+  </div>
   <ul id="scoreList"></ul>
   <details class="help">
     <summary>運指図の見かた</summary>
@@ -199,6 +230,52 @@ details.help summary{font-weight:700;cursor:pointer}
       <button class="btn ghost" id="opDesel">選択を外す</button>
     </div>
   </div>
+</main>
+
+<main id="vTune" hidden>
+  <div class="bar">
+    <button class="btn ghost" id="tuneBack">← 一覧</button>
+    <span class="grow">チューニング確認</span>
+  </div>
+  <section class="stage">
+    <div class="now">
+      <div id="tFing"></div>
+      <div>
+        <div class="nowname" id="tName">—</div>
+        <div class="next" id="tInfo"></div>
+      </div>
+    </div>
+    <div class="tuner">
+      <div class="meter"><span class="zone"></span><span class="mid"></span><span id="tNeedle"></span></div>
+      <div class="tunerow"><span>低い −50¢</span><span id="tHeard">マイクはオフです</span><span>+50¢ 高い</span></div>
+      <div class="tprog"><span id="tProg"></span></div>
+    </div>
+    <div id="tStatus"></div>
+  </section>
+  <div class="controls">
+    <div class="modes">
+      <button class="btn primary" id="tMic">測定をはじめる</button>
+      <button class="btn" id="tPlay">お手本を聴く</button>
+      <button class="btn" id="tPrev" aria-label="前の音">◀</button>
+      <button class="btn" id="tNext" aria-label="次の音">▶</button>
+    </div>
+    <div class="opts">
+      <label>基準 A = <input type="number" class="refin" id="tRef" min="430" max="450" step="1" inputmode="numeric"> Hz</label>
+      <label><input type="checkbox" id="tSharps"> 半音も測る</label>
+    </div>
+    <p class="hint">表示された運指で、いつもの息の強さでまっすぐ吹いてください。1.5秒ほど安定すると記録して次の音へ進みます。一覧の音をタップすると、その音から測り直せます。</p>
+  </div>
+  <h2 class="sub">結果</h2>
+  <div class="tsum" id="tSum"></div>
+  <div class="tscale" aria-hidden="true"><span></span><div><span>−50¢ 低い</span><span>0</span><span>高い +50¢</span></div><span></span></div>
+  <ul class="tres" id="tRes"></ul>
+  <p style="margin-top:10px"><button class="btn ghost" id="tClear">結果を消す</button></p>
+  <details class="help">
+    <summary>結果の見かたと直しかた</summary>
+    <p>¢（セント）は音程のずれで、100¢で半音です。±10¢以内ならぴったり、±25¢までは息の強さで十分合わせられる範囲です。</p>
+    <p>オカリナは息が強いと高く、弱いと低くなります。高めの音は息をやさしく、低めの音は少し強めに。全体にずれているときは、基準Aの設定（440 / 442 Hz）や楽器の温度も確認してください。</p>
+    <p>半音は穴を半分開ける量でも大きく変わるので、ずれていたら開け具合を調整してみてください。</p>
+  </details>
 </main>
 
 <main id="vPrac" hidden>
@@ -328,9 +405,10 @@ async function initRemote(){
 /* ---------- views ---------- */
 let cur=null;
 function show(v){
-  for(const id of ['vList','vEdit','vPrac']) $('#'+id).hidden = id!==v;
+  for(const id of ['vList','vEdit','vPrac','vTune']) $('#'+id).hidden = id!==v;
   window.scrollTo(0,0);
   if(v!=='vPrac') leavePrac();
+  if(v!=='vTune') leaveTune();
 }
 function renderList(){
   const ul=$('#scoreList');
@@ -655,6 +733,116 @@ function step(f){
     }
   }
 }
+
+/* ---------- tuning check ---------- */
+const TLS='ocarina-fu-tune-v1', HOLD=1.5, SETTLE=.3;
+const CHROMA=NOTE_ORDER.flatMap(k=>SHARP[k]?[k,SHARP[k]]:[k]);
+let tune={ref:440,sharps:false,res:{}}, tIdx=0, inTune=false, tRaf=false, tMeas=null, tPause=0;
+try{const v=JSON.parse(localStorage.getItem(TLS)); if(v&&typeof v==='object') tune={...tune,...v,res:v.res||{}};}catch(e){}
+function tSave(){try{localStorage.setItem(TLS,JSON.stringify(tune))}catch(e){}}
+function tNotes(){return tune.sharps?CHROMA:NOTE_ORDER}
+function tTarget(n){return MIDI[n]+12*Math.log2(tune.ref/440)}
+function tCents(f,n){const c=(toMidi(f)-tTarget(n))*100; return ((c+600)%1200+1200)%1200-600;}
+function tVerdict(c){
+  const a=Math.abs(c), dir=c>0?'高め':'低め';
+  if(a<=10) return {cls:'',tx:'ぴったり',k:'ok'};
+  if(a<=25) return {cls:'warn',tx:'少し'+dir,k:''};
+  return {cls:'bad',tx:dir,k:'bad'};
+}
+function fmtC(c){const r=Math.round(c); return (r>0?'+':r<0?'−':'±')+Math.abs(r)+'¢'}
+function tCur(){return tNotes()[tIdx]}
+function tShowNote(){
+  const n=tCur();
+  $('#tFing').innerHTML=fingSVG(n);
+  $('#tName').textContent=LABEL[n];
+  const hz=440*Math.pow(2,(tTarget(n)-69)/12);
+  $('#tInfo').textContent=`${tIdx+1} / ${tNotes().length}　目標 ${hz.toFixed(1)}Hz`;
+  tMeas=null; $('#tProg').style.width='0';
+  tRenderRes();
+}
+function tRenderRes(){
+  const ns=tNotes(), cur=tCur();
+  $('#tRes').innerHTML=ns.map((n,i)=>{
+    const r=tune.res[n];
+    if(!r) return `<li data-i="${i}" class="${n===cur?'cur':''}"><span class="tn">${LABEL[n]}</span><div class="tbar"></div><span class="tv"><span class="na">未測定</span></span></li>`;
+    const c=tCents(r.f,n), v=tVerdict(c), w=Math.min(50,Math.abs(c));
+    const bar = w<.5?'':`<i class="${v.cls} ${c<0?'l':'r'}" style="${c<0?`right:50%`:`left:50%`};width:${w}%"></i>`;
+    return `<li data-i="${i}" class="${n===cur?'cur':''}" aria-label="${LABEL[n]} ${fmtC(c)} ${v.tx}"><span class="tn">${LABEL[n]}</span><div class="tbar">${bar}</div><span class="tv"><b>${fmtC(c)}</b> <span class="${v.k}">${v.tx}</span></span></li>`;
+  }).join('');
+  const done=ns.filter(n=>tune.res[n]), cs=done.map(n=>tCents(tune.res[n].f,n));
+  if(!cs.length){$('#tSum').innerHTML='<p>まだ測定していません。「測定をはじめる」を押して、表示された音を吹いてください。</p>';return}
+  const avg=cs.reduce((a,b)=>a+b,0)/cs.length;
+  const off=done.filter((n,i)=>Math.abs(cs[i])>25);
+  const ok=cs.filter(c=>Math.abs(c)<=10).length;
+  const lead=Math.abs(avg)<=10?'全体の音程はほぼ合っています。':avg>0?'全体に高めです。息を少しやさしくするか、基準Aを見直してみてください。':'全体に低めです。息を少し強めにするか、楽器を手で温めてから測ってみてください。';
+  $('#tSum').innerHTML=`<p><strong>${done.length} / ${ns.length}音</strong> 測定　ぴったり ${ok}音　平均 ${fmtC(avg)}</p><p>${lead}</p>`
+    +(off.length?`<p>ずれが大きい音：${off.map(n=>LABEL[n]).join('・')}</p>`:'');
+}
+function tSetIdx(i){const L=tNotes().length; tIdx=(i+L)%L; tShowNote();}
+function openTune(){
+  show('vTune'); inTune=true;
+  $('#tRef').value=tune.ref; $('#tSharps').checked=tune.sharps;
+  if(tIdx>=tNotes().length) tIdx=0;
+  tShowNote(); tMicBtn();
+  $('#tStatus').textContent='';
+}
+function leaveTune(){ if(!inTune) return; inTune=false; stopMic(); tStopMic(); }
+function tStopMic(){ $('#tHeard').textContent='マイクはオフです'; $('#tNeedle').style.display='none'; $('#tProg').style.width='0'; tMeas=null; tMicBtn(); }
+function tMicBtn(){const b=$('#tMic'); b.textContent=analyser?'測定を止める':'測定をはじめる'; b.classList.toggle('primary',!analyser);}
+function tFrame(){
+  if(!inTune||!analyser){tRaf=false; return;}
+  analyser.getFloatTimeDomainData(buf);
+  const f=detectPitch(buf,actx.sampleRate), now=performance.now()/1000, nd=$('#tNeedle'), n=tCur();
+  if(now<tPause){requestAnimationFrame(tFrame); return;}
+  if(f<0){
+    $('#tHeard').textContent='（聞こえていません）'; nd.style.display='none';
+    if(tMeas&&now-tMeas.last>.15){tMeas=null; $('#tProg').style.width='0';}
+  } else {
+    const c=tCents(f,n);
+    $('#tHeard').textContent=`${midiName(Math.round(toMidi(f)))}　${fmtC(c)}`;
+    nd.style.display='block'; nd.style.left=(50+Math.max(-50,Math.min(50,c)))+'%';
+    nd.classList.toggle('good',Math.abs(c)<=10);
+    if(Math.abs(c)<=80){
+      if(!tMeas) tMeas={start:now,last:now,fs:[]};
+      tMeas.last=now;
+      if(now-tMeas.start>SETTLE) tMeas.fs.push(f);
+      const p=Math.min(1,(now-tMeas.start)/(HOLD+SETTLE));
+      $('#tProg').style.width=(p*100)+'%';
+      if(p>=1&&tMeas.fs.length>5){
+        const fs=tMeas.fs.sort((a,b)=>a-b), fm=fs[fs.length>>1];
+        tune.res[n]={f:fm,t:Date.now()}; tSave();
+        const c2=tCents(fm,n);
+        $('#tStatus').textContent=`${LABEL[n]}：${fmtC(c2)}（${tVerdict(c2).tx}）を記録しました`;
+        tPause=now+.9; tMeas=null;
+        const ns=tNotes(), nx=ns.findIndex((x,i)=>i>tIdx&&!tune.res[x]);
+        if(nx>=0) tSetIdx(nx);
+        else if(tIdx<ns.length-1) tSetIdx(tIdx+1);
+        else {tRenderRes(); $('#tStatus').textContent+='。全部の音を測り終えました'; stopMic(); tStopMic(); return;}
+      }
+    } else if(tMeas&&now-tMeas.last>.15){tMeas=null; $('#tProg').style.width='0';}
+  }
+  requestAnimationFrame(tFrame);
+}
+$('#tuneBtn').addEventListener('click',openTune);
+$('#tuneBack').addEventListener('click',()=>{show('vList'); renderList();});
+$('#tMic').addEventListener('click',async()=>{
+  if(analyser){stopMic(); tStopMic(); $('#tStatus').textContent=''; return;}
+  if(!await ensureMic()){$('#tStatus').textContent='マイクを使えませんでした。ブラウザやアプリのマイク許可を確認してください。'; return;}
+  if(!inTune){stopMic(); return;}
+  tMicBtn(); $('#tStatus').textContent=`${LABEL[tCur()]}を吹いてください`;
+  if(!tRaf){tRaf=true; requestAnimationFrame(tFrame);}
+});
+$('#tPlay').addEventListener('click',()=>{const a=ac(); tone(tTarget(tCur()),a.currentTime+.01,1.2,.18);});
+$('#tPrev').addEventListener('click',()=>tSetIdx(tIdx-1));
+$('#tNext').addEventListener('click',()=>tSetIdx(tIdx+1));
+$('#tRes').addEventListener('click',e=>{const li=e.target.closest('li[data-i]'); if(li) tSetIdx(+li.dataset.i);});
+$('#tRef').addEventListener('change',e=>{const v=Math.round(+e.target.value); tune.ref=v>=430&&v<=450?v:440; e.target.value=tune.ref; tSave(); tShowNote();});
+$('#tSharps').addEventListener('change',e=>{const n=tCur(); tune.sharps=e.target.checked; tSave(); const i=tNotes().indexOf(n); tIdx=i>=0?i:tNotes().indexOf(n.replace('#','')); tShowNote();});
+$('#tClear').addEventListener('click',e=>{
+  const b=e.target;
+  if(b.dataset.armed){tune.res={}; tSave(); tSetIdx(0); delete b.dataset.armed; b.textContent='結果を消す'; $('#tStatus').textContent='';}
+  else{b.dataset.armed='1'; b.textContent='本当に消す'; setTimeout(()=>{delete b.dataset.armed; b.textContent='結果を消す'},3000)}
+});
 
 /* ---------- share ---------- */
 // 共有リンク: #s=<base64url(JSON {t,b,i})>、i は "C5:1 R:.5 | …" の形
