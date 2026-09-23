@@ -9,7 +9,9 @@
 
 ## 使い方
 `index.html` をブラウザで開くだけ。ビルド不要。
-GitHub Pages で公開する場合は Settings → Pages で `main` ブランチのルートを指定。
+GitHub Pages へは `.github/workflows/pages.yml` で `main` への push 時に自動デプロイされる。
+初回のみ Settings → Pages → Build and deployment の Source を「GitHub Actions」に設定する。
+公開URL: https://enawork.github.io/ocarina-fu/
 
 ## メモ
 - スコアはブラウザの localStorage に保存される
