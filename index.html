@@ -55,7 +55,14 @@ button{font:inherit;color:inherit}
 .it-title{font-weight:900;font-size:18px}
 .it-meta{color:var(--muted);font-size:13px}
 .it-pre{font-size:14px;margin-top:2px}
-.it-ops{display:flex;gap:6px}
+.it-ops{display:flex;flex-wrap:wrap;gap:6px}
+.incoming{background:var(--cur-bg);border:1.5px solid var(--accent);border-radius:16px;padding:14px;margin:0 0 14px}
+.incoming p{margin:0 0 10px}
+.incoming .it-ops{margin-top:10px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;
+  background:var(--ink);color:var(--bg);border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;
+  width:max-content;max-width:calc(100% - 32px);text-align:center;pointer-events:none;opacity:0;transition:opacity .2s}
+#toast.show{opacity:1}
 .empty{color:var(--muted);padding:16px 4px}
 
 details.help{background:var(--surface);border-radius:16px;padding:12px 14px;margin-top:8px}
@@ -143,6 +150,7 @@ details.help summary{font-weight:700;cursor:pointer}
     <h1>オカリナ譜</h1>
   </div>
   <p class="lead">指の図と音の長さで読むTAB譜。自分でスコアを作って、マイクで音程を確かめながら練習できます。</p>
+  <div id="incoming" class="incoming" hidden></div>
   <button class="btn primary" id="newBtn">＋ 新しいスコア</button>
   <ul id="scoreList"></ul>
   <details class="help">
@@ -218,6 +226,7 @@ details.help summary{font-weight:700;cursor:pointer}
   <div id="pracScore" class="score"></div>
 </main>
 
+<div id="toast" role="status" aria-live="polite"></div>
 <script>
 (() => {
 const $ = s => document.querySelector(s);
@@ -309,7 +318,7 @@ function renderList(){
     return `<li class="item" data-id="${esc(s.id)}"><div><div class="it-title">${esc(s.title||'無題')}</div>
       <div class="it-meta">${ns.length}音　♩=${s.bpm}</div>
       <div class="it-pre">${ns.slice(0,8).map(x=>LABEL[x.n]).join(' ')}${ns.length>8?' …':''}</div></div>
-      <div class="it-ops"><button class="btn primary" data-act="prac">練習</button><button class="btn" data-act="edit">編集</button><button class="btn ghost" data-act="del">削除</button></div></li>`;
+      <div class="it-ops"><button class="btn primary" data-act="prac">練習</button><button class="btn" data-act="edit">編集</button><button class="btn" data-act="share">共有</button><button class="btn ghost" data-act="del">削除</button></div></li>`;
   }).join('');
 }
 $('#scoreList').addEventListener('click',e=>{
@@ -317,6 +326,7 @@ $('#scoreList').addEventListener('click',e=>{
   const id=b.closest('li').dataset.id; const s=scores.find(x=>x.id===id); if(!s) return;
   if(b.dataset.act==='edit') openEdit(s);
   else if(b.dataset.act==='prac') openPrac(s);
+  else if(b.dataset.act==='share') shareScore(s);
   else if(b.dataset.act==='del'){
     if(b.dataset.armed){scores=scores.filter(x=>x.id!==id); persist(); renderList();}
     else{b.dataset.armed='1'; b.textContent='本当に削除'; setTimeout(()=>{if(b.isConnected){delete b.dataset.armed; b.textContent='削除'}},3000)}
@@ -613,11 +623,71 @@ function step(f){
   }
 }
 
+/* ---------- share ---------- */
+// 共有リンク: #s=<base64url(JSON {t,b,i})>、i は "C5:1 R:.5 | …" の形
+let toastTimer=null;
+function toast(msg){const el=$('#toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2200);}
+function b64uEnc(str){const by=new TextEncoder().encode(str); let bin=''; for(const x of by) bin+=String.fromCharCode(x); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function b64uDec(t){const bin=atob(t.replace(/-/g,'+').replace(/_/g,'/')); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)));}
+function encodeScore(s){
+  const i=s.items.map(x=>x.n==='|'?'|':x.n+':'+x.b).join(' ');
+  return b64uEnc(JSON.stringify({t:s.title||'',b:s.bpm,i}));
+}
+function decodeScore(t){
+  try{
+    const o=JSON.parse(b64uDec(t)); if(!o||typeof o.i!=='string') return null;
+    const okB=new Set(DURS.map(d=>d[0])), items=[];
+    for(const tok of o.i.split(' ')){
+      if(!tok) continue;
+      if(tok==='|'){items.push({n:'|',b:0}); continue;}
+      const [n,bs]=tok.split(':'), b=+bs;
+      if(!(isNote(n)||n==='R')||!okB.has(b)) return null;
+      items.push({n,b});
+    }
+    const bpm=Math.min(240,Math.max(30,Math.round(+o.b)||90));
+    return {id:newId(),title:String(o.t||'').slice(0,100),bpm,items};
+  }catch(e){return null}
+}
+function shareUrl(s){return location.origin+location.pathname+'#s='+encodeScore(s)}
+async function shareScore(s){
+  const url=shareUrl(s), title=s.title||'無題';
+  if(navigator.share){
+    try{await navigator.share({title:'オカリナ譜「'+title+'」',url}); return;}
+    catch(e){if(e&&e.name==='AbortError') return;}
+  }
+  try{await navigator.clipboard.writeText(url); toast('共有リンクをコピーしました');}
+  catch(e){window.prompt('このリンクをコピーして共有してください',url);}
+}
+function sameScore(a,b){return a.title===b.title&&a.bpm===b.bpm&&JSON.stringify(a.items)===JSON.stringify(b.items)}
+function checkIncoming(){
+  const m=location.hash.match(/^#s=([A-Za-z0-9_-]+)$/);
+  if(!m) return;
+  history.replaceState(null,'',location.pathname+location.search);
+  const box=$('#incoming'), s=decodeScore(m[1]);
+  if(!s){box.innerHTML='<p>共有リンクを読み込めませんでした。</p><div class="it-ops"><button class="btn ghost" data-act="close">閉じる</button></div>'; box.hidden=false; return;}
+  const ns=s.items.filter(x=>isNote(x.n));
+  const dup=scores.find(x=>sameScore(x,s));
+  box.innerHTML=`<p>共有されたスコアが届きました</p><div class="it-title">${esc(s.title||'無題')}</div>
+    <div class="it-meta">${ns.length}音　♩=${s.bpm}</div>
+    <div class="it-pre">${ns.slice(0,8).map(x=>LABEL[x.n]).join(' ')}${ns.length>8?' …':''}</div>
+    <div class="it-ops">${dup?'<button class="btn primary" data-act="open">練習する（追加済み）</button>':'<button class="btn primary" data-act="add">追加して練習</button>'}<button class="btn ghost" data-act="close">閉じる</button></div>`;
+  box.hidden=false;
+  box.onclick=e=>{
+    const b=e.target.closest('button[data-act]'); if(!b) return;
+    box.hidden=true;
+    if(b.dataset.act==='add'){scores.unshift(s); persist(); renderList(); openPrac(s);}
+    else if(b.dataset.act==='open') openPrac(dup);
+  };
+}
+$('#incoming').addEventListener('click',e=>{const b=e.target.closest('button[data-act="close"]'); if(b) $('#incoming').hidden=true;});
+window.addEventListener('hashchange',()=>{if(!location.hash.startsWith('#s=')) return; show('vList'); renderList(); checkIncoming();});
+
 /* ---------- boot ---------- */
 const saved=lsGet();
 scores = Array.isArray(saved)?saved:[sample()];
 if(!Array.isArray(saved)) lsSet(scores);
 renderList();
+checkIncoming();
 initRemote();
 })();
 </script>
