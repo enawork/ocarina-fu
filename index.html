@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>オカリナ譜</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAEFF3;--surface:#FFFFFF;--ink:#1C2B45;--muted:#5E6C81;--line:#D3DBE4;
+  --clay:#DCE6EF;--hole:#FFFFFF;--accent:#E1A01A;--cur-bg:#FFF4D6;
+  --ok:#1F7F5B;--ok-bg:#DDF2E8;--ng:#B8352C;--ng-bg:#F8E0DD;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1520;--surface:#18212F;--ink:#E4EAF3;--muted:#9AA7BA;--line:#2A3546;
+    --clay:#263245;--hole:#0F1520;--accent:#F0B53A;--cur-bg:#3A3018;
+    --ok:#5CCB9C;--ok-bg:#16372B;--ng:#F08378;--ng-bg:#3B1E1C;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1520;--surface:#18212F;--ink:#E4EAF3;--muted:#9AA7BA;--line:#2A3546;
+  --clay:#263245;--hole:#0F1520;--accent:#F0B53A;--cur-bg:#3A3018;
+  --ok:#5CCB9C;--ok-bg:#16372B;--ng:#F08378;--ng-bg:#3B1E1C;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:16px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+main{max-width:760px;margin:0 auto;padding:0 14px 24px}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.brand{display:flex;align-items:center;gap:10px;padding:18px 0 10px}
+.brand h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.04em}
+.brand svg{width:44px;height:auto}
+.lead{margin:0 0 14px;color:var(--muted);font-size:14px}
+
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:999px;
+  padding:7px 14px;min-height:40px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.ghost{border-color:var(--line);color:var(--muted)}
+.btn.on{background:var(--accent);border-color:var(--accent);color:#231800}
+.btn:disabled{opacity:.4;cursor:default}
+
+#scoreList{list-style:none;margin:14px 0;padding:0;display:grid;gap:10px}
+.item{background:var(--surface);border-radius:16px;padding:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.it-title{font-weight:900;font-size:18px}
+.it-meta{color:var(--muted);font-size:13px}
+.it-pre{font-size:14px;margin-top:2px}
+.it-ops{display:flex;gap:6px}
+.empty{color:var(--muted);padding:16px 4px}
+
+details.help{background:var(--surface);border-radius:16px;padding:12px 14px;margin-top:8px}
+details.help summary{font-weight:700;cursor:pointer}
+.legend{width:min(340px,100%);display:block;margin:10px auto}
+.help p{font-size:14px;margin:6px 0}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--bg);
+  display:flex;align-items:center;gap:8px;padding:10px 0}
+.bar .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.save{font-size:12px;color:var(--muted)}
+
+.fields{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fields input[type=text]{flex:1 1 200px;font:inherit;font-weight:700;font-size:18px;padding:8px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.fields label{display:flex;align-items:center;gap:6px;font-size:14px}
+.fields input[type=number]{width:72px;font:inherit;padding:8px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+
+.score{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;padding:12px 0}
+.card{appearance:none;border:2px solid transparent;background:var(--surface);border-radius:14px;
+  padding:6px 6px 8px;display:flex;flex-direction:column;align-items:flex-start;gap:1px;cursor:pointer;min-height:98px;text-align:left}
+.card .fing{width:64px;height:auto;display:block}
+.card.short .fing{width:48px}
+.card .nm{font-weight:900;font-size:17px;white-space:nowrap;line-height:1.3}
+.card .ext{color:var(--muted);font-weight:700}
+.beats{display:flex;gap:4px;margin-top:auto;padding-top:4px}
+.beats i{display:block;width:26px;height:5px;border-radius:3px;background:var(--ink);opacity:.7}
+.beats i.hf{width:11px}
+.restmark{width:64px;height:40px;display:grid;place-items:center;font-size:20px;color:var(--muted);font-weight:900}
+.card.short .restmark{width:48px}
+.card.sel{border-color:var(--accent)}
+.card.cur{border-color:var(--accent);background:var(--cur-bg)}
+.card.ok{background:var(--ok-bg);border-color:var(--ok)}
+.card.ng{background:var(--ng-bg);border-color:var(--ng)}
+.sep{appearance:none;border:0;background:transparent;width:16px;padding:0;cursor:pointer;position:relative;border-radius:6px}
+.sep::after{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;border-radius:1px;background:var(--muted);opacity:.45}
+.sep.sel{background:var(--cur-bg)}
+
+.fing .bd,.fing .mp{fill:var(--clay);stroke:var(--ink);stroke-width:1.4}
+.fing .h{fill:var(--hole);stroke:var(--ink);stroke-width:1.2}
+.fing .h.c{fill:var(--ink)}
+.fing .h.b{stroke-dasharray:2.2 1.6}
+.fing text{fill:var(--muted);font-size:4.6px;font-weight:700;text-anchor:middle}
+
+.palette{position:sticky;bottom:0;z-index:3;background:var(--surface);border-top:1px solid var(--line);
+  margin:0 -14px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px))}
+.durs,.ops{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.durs .btn,.ops .btn{min-height:36px;padding:4px 12px;font-size:14px}
+.notes{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:7px 0}
+.nb{appearance:none;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:3px 2px 2px;
+  display:flex;flex-direction:column;align-items:center;cursor:pointer;min-height:52px;justify-content:center}
+.nb .fing{width:38px;height:auto}
+.nb span{font-size:13px;font-weight:900;line-height:1.2}
+.nb:active{background:var(--cur-bg)}
+.hint{font-size:13px;color:var(--muted);margin:0 0 8px}
+
+.stage{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);z-index:2;background:var(--bg);padding:6px 0 10px;border-bottom:1px solid var(--line)}
+.now{display:flex;gap:14px;align-items:center}
+.now .fing{width:150px;height:auto}
+.now .restmark{width:150px;height:92px;font-size:34px}
+.nowname{font-size:38px;font-weight:900;line-height:1.1}
+.next{font-size:14px;color:var(--muted)}
+.tuner{margin-top:8px}
+.meter{position:relative;height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.meter .zone{position:absolute;left:25%;width:50%;top:0;bottom:0;background:var(--ok-bg)}
+.meter .mid{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--muted);opacity:.5}
+#needle{position:absolute;top:0;bottom:0;width:6px;margin-left:-3px;border-radius:3px;background:var(--ink);left:50%;display:none}
+#needle.good{background:var(--ok)}
+.tunerow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:3px}
+#status{font-weight:700;min-height:1.6em;margin-top:4px}
+.controls{display:grid;gap:8px;padding:12px 0 4px}
+.modes{display:flex;gap:6px;flex-wrap:wrap}
+.opts{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px}
+.opts label{display:flex;align-items:center;gap:6px}
+.tempo{display:flex;align-items:center;gap:8px;font-size:14px}
+.tempo input{flex:1;max-width:260px;accent-color:var(--accent)}
+@media (max-width:420px){.now .fing{width:120px}.nowname{font-size:32px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<main id="vList">
+  <div class="brand">
+    <svg viewBox="0 0 100 62" class="fing" aria-hidden="true"><path class="mp" d="M43 44 L43 57 Q50 61 57 57 L57 44 Z"/><path class="bd" d="M5 30 C4 9 95 5 96 28 C97 43 72 48 50 48 C27 48 6 45 5 30 Z"/></svg>
+    <h1>オカリナ譜</h1>
+  </div>
+  <p class="lead">指の図と音の長さで読むTAB譜。自分でスコアを作って、マイクで音程を確かめながら練習できます。</p>
+  <button class="btn primary" id="newBtn">＋ 新しいスコア</button>
+  <ul id="scoreList"></ul>
+  <details class="help">
+    <summary>運指図の見かた</summary>
+    <div id="legendBox"></div>
+    <p>●は押さえる、○は開ける。上の段の左4つが左手、右4つが右手の指です。</p>
+    <p>点線の2つは裏側の親指の穴、小さい2つはサブホール（低いシ・ラで使います）。</p>
+    <p>12穴アルトC管の一般的な運指です。お手持ちの運指表と違うときはそちらを優先してください。半音（#・♭）には未対応です。</p>
+    <p>下のバーの本数が拍の長さです（短いバーは半拍）。</p>
+  </details>
+</main>
+
+<main id="vEdit" hidden>
+  <div class="bar">
+    <button class="btn ghost" id="editBack">← 一覧</button>
+    <span class="grow"><span class="save" id="saveState"></span></span>
+    <button class="btn primary" id="toPrac">練習する</button>
+  </div>
+  <div class="fields">
+    <input type="text" id="title" placeholder="曲名" aria-label="曲名">
+    <label>テンポ ♩=<input type="number" id="bpm" min="30" max="240" inputmode="numeric"></label>
+  </div>
+  <div id="editScore" class="score"></div>
+  <p class="hint">カードをタップで選択。選択中に音ボタンを押すと差し替え、長さボタンで長さを変更できます。</p>
+  <div class="palette">
+    <div class="durs" id="durs"></div>
+    <div class="notes" id="notes"></div>
+    <div class="ops">
+      <button class="btn" id="opPrev" aria-label="前を選択">◀</button>
+      <button class="btn" id="opNext" aria-label="次を選択">▶</button>
+      <button class="btn" id="opIns">挿入モード</button>
+      <button class="btn" id="opDel">最後を削除</button>
+      <button class="btn ghost" id="opDesel">選択を外す</button>
+    </div>
+  </div>
+</main>
+
+<main id="vPrac" hidden>
+  <div class="bar">
+    <button class="btn ghost" id="pracBack">← 一覧</button>
+    <span class="grow" id="pracTitle"></span>
+    <button class="btn" id="pracEdit">編集</button>
+  </div>
+  <section class="stage">
+    <div class="now">
+      <div id="bigFing"></div>
+      <div>
+        <div class="nowname" id="nowName">—</div>
+        <div class="next">次　<span id="nextName"></span></div>
+      </div>
+    </div>
+    <div class="tuner">
+      <div class="meter"><span class="zone"></span><span class="mid"></span><span id="needle"></span></div>
+      <div class="tunerow"><span>低い</span><span id="heard">マイクはオフです</span><span>高い</span></div>
+    </div>
+    <div id="status"></div>
+  </section>
+  <div class="controls">
+    <div class="modes">
+      <button class="btn" data-mode="play">お手本を聴く</button>
+      <button class="btn" data-mode="wait">合うまで待つ練習</button>
+      <button class="btn" data-mode="tempo">テンポで採点</button>
+      <button class="btn ghost" id="stopBtn">止める</button>
+    </div>
+    <div class="tempo">テンポ ♩=<span id="pBpmVal"></span><input type="range" id="pBpm" min="30" max="200" step="1" aria-label="練習テンポ"></div>
+    <div class="opts">
+      <label><input type="checkbox" id="metro" checked> メトロノーム</label>
+      <label><input type="checkbox" id="guide"> 採点中もお手本を鳴らす（イヤホン推奨）</label>
+      <label><input type="checkbox" id="octFree" checked> オクターブ違いも正解</label>
+    </div>
+  </div>
+  <p class="hint">カードをタップするとそこから練習を始めます。</p>
+  <div id="pracScore" class="score"></div>
+</main>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const NOTE_ORDER = ['A4','B4','C5','D5','E5','F5','G5','A5','B5','C6','D6','E6','F6'];
+const LABEL = {A4:'低ラ',B4:'低シ',C5:'ド',D5:'レ',E5:'ミ',F5:'ファ',G5:'ソ',A5:'ラ',B5:'シ',C6:'高ド',D6:'高レ',E6:'高ミ',F6:'高ファ'};
+const MIDI = {A4:69,B4:71,C5:72,D5:74,E5:76,F5:77,G5:79,A5:81,B5:83,C6:84,D6:86,E6:88,F6:89};
+const ADD = ['RT','LT','L1','L2','L3','L4','R1','R2','R3','R4','S1','S2'];
+const CLOSED = {};
+[...NOTE_ORDER].reverse().forEach((k,i) => CLOSED[k] = new Set(ADD.slice(0,i)));
+const HOLES = {L4:[13,27,4.4],L3:[23,20.5,4.4],L2:[33,17,4.4],L1:[43,16,4.4],
+  R1:[57,16,4.4],R2:[67,17,4.4],R3:[77,20.5,4.4],R4:[87,27,4.4],
+  S1:[60.5,25.5,2.3],S2:[70.5,26.5,2.3],LT:[36,37,4.4],RT:[64,37,4.4]};
+const PC = ['ド','ド#','レ','レ#','ミ','ファ','ファ#','ソ','ソ#','ラ','ラ#','シ'];
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function newId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function isNote(n){return MIDI[n]!==undefined}
+
+function holesSVG(closed){
+  let h='';
+  for(const [id,[x,y,r]] of Object.entries(HOLES)){
+    const b = id==='LT'||id==='RT';
+    h += `<circle cx="${x}" cy="${y}" r="${r}" class="h${closed.has(id)?' c':''}${b?' b':''}"/>`;
+  }
+  return h;
+}
+const BODY = '<path class="mp" d="M43 44 L43 57 Q50 61 57 57 L57 44 Z"/><path class="bd" d="M5 30 C4 9 95 5 96 28 C97 43 72 48 50 48 C27 48 6 45 5 30 Z"/>';
+function fingSVG(key){
+  return `<svg viewBox="0 0 100 62" class="fing" aria-hidden="true">${BODY}${holesSVG(CLOSED[key]||new Set())}</svg>`;
+}
+function legendSVG(){
+  const t=(x,y,s)=>`<text x="${x}" y="${y}">${s}</text>`;
+  const H=HOLES;
+  const lab = [['L4','小'],['L3','薬'],['L2','中'],['L1','人'],['R1','人'],['R2','中'],['R3','薬'],['R4','小']]
+    .map(([k,s])=>t(H[k][0],H[k][1]-6.5,s)).join('');
+  return `<svg viewBox="0 -4 100 70" class="fing legend" role="img" aria-label="穴と指の対応図">${BODY}${holesSVG(new Set())}${lab}
+  ${t(65.5,33,'サブ')}${t(36,46.5,'左親指')}${t(64,46.5,'右親指')}${t(22,60,'左手')}${t(78,60,'右手')}</svg>`;
+}
+
+function mk(a){return a.map(([n,b])=>({n,b}))}
+function sample(){return {id:newId(),title:'かえるのうた（サンプル）',bpm:100,items:mk([
+  ['C5',1],['D5',1],['E5',1],['F5',1],['E5',1],['D5',1],['C5',2],['|',0],
+  ['E5',1],['F5',1],['G5',1],['A5',1],['G5',1],['F5',1],['E5',2],['|',0],
+  ['C5',1],['R',1],['C5',1],['R',1],['C5',1],['R',1],['C5',1],['R',1],['|',0],
+  ['C5',.5],['C5',.5],['D5',.5],['D5',.5],['E5',.5],['E5',.5],['F5',.5],['F5',.5],['E5',1],['D5',1],['C5',2]])}}
+
+/* ---------- storage ---------- */
+const LS='ocarina-fu-scores-v1';
+let scores=[], dref=null, saveTimer=null;
+function lsGet(){try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}}
+function lsSet(v){try{localStorage.setItem(LS,JSON.stringify(v))}catch(e){}}
+function setSave(s){const el=$('#saveState'); if(el) el.textContent=s}
+function persist(){
+  lsSet(scores); setSave('保存中…');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    if(dref){try{await dref.set({scores})}catch(e){}}
+    setSave('保存済み');
+  },600);
+}
+async function initRemote(){
+  if(!window.claude||typeof window.claude.use!=='function') return;
+  try{
+    const [d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!d||!u) return;
+    const id=await u.id(); if(!id) return;
+    const ref=d.doc('data/users/'+id+'/ocarina');
+    const snap=await ref.get();
+    if(snap.exists){
+      const data=snap.data();
+      if(data&&Array.isArray(data.scores)){scores=data.scores; lsSet(scores); if(!$('#vList').hidden) renderList();}
+    } else if(scores.length){ await ref.set({scores}); }
+    dref=ref;
+  }catch(e){}
+}
+
+/* ---------- views ---------- */
+let cur=null;
+function show(v){
+  for(const id of ['vList','vEdit','vPrac']) $('#'+id).hidden = id!==v;
+  window.scrollTo(0,0);
+  if(v!=='vPrac') leavePrac();
+}
+function renderList(){
+  const ul=$('#scoreList');
+  if(!scores.length){ul.innerHTML='<li class="empty">スコアがありません。「新しいスコア」から作れます。</li>';return}
+  ul.innerHTML=scores.map(s=>{
+    const ns=s.items.filter(x=>isNote(x.n));
+    return `<li class="item" data-id="${esc(s.id)}"><div><div class="it-title">${esc(s.title||'無題')}</div>
+      <div class="it-meta">${ns.length}音　♩=${s.bpm}</div>
+      <div class="it-pre">${ns.slice(0,8).map(x=>LABEL[x.n]).join(' ')}${ns.length>8?' …':''}</div></div>
+      <div class="it-ops"><button class="btn primary" data-act="prac">練習</button><button class="btn" data-act="edit">編集</button><button class="btn ghost" data-act="del">削除</button></div></li>`;
+  }).join('');
+}
+$('#scoreList').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]'); if(!b) return;
+  const id=b.closest('li').dataset.id; const s=scores.find(x=>x.id===id); if(!s) return;
+  if(b.dataset.act==='edit') openEdit(s);
+  else if(b.dataset.act==='prac') openPrac(s);
+  else if(b.dataset.act==='del'){
+    if(b.dataset.armed){scores=scores.filter(x=>x.id!==id); persist(); renderList();}
+    else{b.dataset.armed='1'; b.textContent='本当に削除'; setTimeout(()=>{if(b.isConnected){delete b.dataset.armed; b.textContent='削除'}},3000)}
+  }
+});
+$('#newBtn').addEventListener('click',()=>{
+  const s={id:newId(),title:'',bpm:90,items:[]}; scores.unshift(s); persist(); openEdit(s); setTimeout(()=>$('#title').focus(),50);
+});
+
+function cardHTML(it,i){
+  if(it.n==='|') return `<button class="sep" data-i="${i}" aria-label="区切り"></button>`;
+  const b=it.b, short=b<1;
+  const w = short?60:76+(b-1)*30;
+  const name = it.n==='R'?'休':LABEL[it.n];
+  const ext = b>=2?'ー'.repeat(Math.round(b)-1):'';
+  const full=Math.floor(b), half=(b%1)?1:0;
+  const pic = it.n==='R'?'<div class="restmark">休</div>':fingSVG(it.n);
+  return `<button class="card${short?' short':''}" data-i="${i}" style="width:${w}px" aria-label="${name} ${b}拍">${pic}
+    <div class="nm">${it.n==='R'?'':name}<span class="ext">${ext}</span></div>
+    <div class="beats">${'<i></i>'.repeat(full)}${half?'<i class="hf"></i>':''}</div></button>`;
+}
+
+/* ---------- editor ---------- */
+let sel=-1, dur=1, insMode=false;
+const DURS=[[.5,'½拍'],[1,'1拍'],[1.5,'1½拍'],[2,'2拍'],[3,'3拍'],[4,'4拍']];
+$('#durs').innerHTML=DURS.map(([v,l])=>`<button class="btn" data-d="${v}">${l}</button>`).join('');
+$('#notes').innerHTML=NOTE_ORDER.map(k=>`<button class="nb" data-n="${k}">${fingSVG(k)}<span>${LABEL[k]}</span></button>`).join('')
+  +`<button class="nb" data-n="R"><span style="font-size:18px">休</span><span>休み</span></button>`
+  +`<button class="nb" data-n="|"><span style="font-size:18px">｜</span><span>区切り</span></button>`;
+$('#legendBox').innerHTML=legendSVG();
+
+function openEdit(s){cur=s; sel=-1; insMode=false; show('vEdit'); $('#title').value=s.title; $('#bpm').value=s.bpm; setSave(''); renderEdit();}
+function renderEdit(){
+  const el=$('#editScore'), it=cur.items;
+  el.innerHTML = it.length? it.map(cardHTML).join('') : '<p class="empty">下の音ボタンを押すと、ここに並んでいきます。</p>';
+  if(sel>=it.length) sel=it.length-1;
+  if(sel>=0){const c=el.querySelector(`[data-i="${sel}"]`); if(c){c.classList.add('sel'); c.scrollIntoView({block:'nearest'});}}
+  const active = sel>=0&&cur.items[sel].n!=='|'?cur.items[sel].b:dur;
+  document.querySelectorAll('#durs .btn').forEach(b=>b.classList.toggle('on',+b.dataset.d===active));
+  $('#opIns').classList.toggle('on',insMode);
+  $('#opDel').textContent = sel>=0?'削除':'最後を削除';
+}
+$('#editScore').addEventListener('click',e=>{
+  const c=e.target.closest('[data-i]'); if(!c) return;
+  const i=+c.dataset.i; sel = sel===i?-1:i;
+  const it=cur.items[i]; if(sel>=0&&isNote(it.n)) preview(it.n);
+  renderEdit();
+});
+$('#durs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-d]'); if(!b) return;
+  const v=+b.dataset.d;
+  if(sel>=0&&cur.items[sel].n!=='|'){cur.items[sel].b=v; persist();} else dur=v;
+  renderEdit();
+});
+$('#notes').addEventListener('click',e=>{
+  const b=e.target.closest('[data-n]'); if(!b) return;
+  const n=b.dataset.n, items=cur.items;
+  const fresh = n==='|'?{n:'|',b:0}:{n,b:dur};
+  if(sel>=0&&insMode){items.splice(sel+1,0,fresh); sel++;}
+  else if(sel>=0){
+    const old=items[sel];
+    items[sel] = n==='|'?fresh:{n,b:old.n==='|'?dur:old.b};
+  } else items.push(fresh);
+  if(isNote(n)) preview(n);
+  persist(); renderEdit();
+});
+$('#opPrev').addEventListener('click',()=>{const L=cur.items.length; if(!L) return; sel = sel<0?L-1:Math.max(0,sel-1); renderEdit();});
+$('#opNext').addEventListener('click',()=>{const L=cur.items.length; if(!L) return; sel = sel<0?0:(sel<L-1?sel+1:-1); renderEdit();});
+$('#opIns').addEventListener('click',()=>{insMode=!insMode; renderEdit();});
+$('#opDesel').addEventListener('click',()=>{sel=-1; renderEdit();});
+$('#opDel').addEventListener('click',()=>{
+  if(!cur.items.length) return;
+  if(sel>=0){cur.items.splice(sel,1); if(sel>=cur.items.length) sel=cur.items.length-1;} else cur.items.pop();
+  persist(); renderEdit();
+});
+$('#title').addEventListener('input',e=>{cur.title=e.target.value; persist();});
+$('#bpm').addEventListener('change',e=>{let v=Math.round(+e.target.value)||90; v=Math.min(240,Math.max(30,v)); e.target.value=v; cur.bpm=v; persist();});
+$('#editBack').addEventListener('click',()=>{show('vList'); renderList();});
+$('#toPrac').addEventListener('click',()=>openPrac(cur));
+
+/* ---------- audio ---------- */
+let actx=null, nodes=[];
+function ac(){
+  if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+function tone(midi,t,d,vol=.2){
+  const a=ac(), f=440*Math.pow(2,(midi-69)/12);
+  const o=a.createOscillator(), o2=a.createOscillator(), g=a.createGain(), g2=a.createGain();
+  const l=a.createOscillator(), lg=a.createGain();
+  o.type='sine'; o.frequency.value=f; o2.type='sine'; o2.frequency.value=f*2; g2.gain.value=.06;
+  l.frequency.value=5.2; lg.gain.value=f*.004; l.connect(lg); lg.connect(o.frequency);
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(a.destination);
+  const end=t+d;
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.03);
+  g.gain.setValueAtTime(vol,Math.max(t+.04,end-.05)); g.gain.linearRampToValueAtTime(0,end);
+  for(const x of [o,o2,l]){x.start(t); x.stop(end+.02); nodes.push(x);}
+}
+function click(t,acc){
+  const a=ac(), o=a.createOscillator(), g=a.createGain();
+  o.type='square'; o.frequency.value=acc?1800:1200;
+  g.gain.setValueAtTime(acc?.09:.05,t); g.gain.exponentialRampToValueAtTime(.0001,t+.03);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+.04); nodes.push(o);
+}
+function stopAudio(){for(const n of nodes){try{n.stop()}catch(e){}} nodes=[];}
+function preview(n){const a=ac(); tone(MIDI[n],a.currentTime+.01,.35,.16);}
+
+/* ---------- mic & pitch ---------- */
+let stream=null, analyser=null, buf=null;
+async function ensureMic(){
+  if(analyser) return true;
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const a=ac(); const src=a.createMediaStreamSource(stream);
+    analyser=a.createAnalyser(); analyser.fftSize=2048; src.connect(analyser);
+    buf=new Float32Array(analyser.fftSize);
+    return true;
+  }catch(e){
+    setStatus('マイクを使えませんでした。ブラウザやアプリのマイク許可を確認してください。');
+    return false;
+  }
+}
+function stopMic(){
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  stream=null; analyser=null; $('#heard').textContent='マイクはオフです'; $('#needle').style.display='none';
+}
+function detectPitch(b,sr){
+  const n=b.length; let rms=0;
+  for(let i=0;i<n;i++) rms+=b[i]*b[i];
+  rms=Math.sqrt(rms/n); if(rms<.012) return -1;
+  const minLag=Math.floor(sr/1700), maxLag=Math.ceil(sr/350);
+  let c0=0; for(let i=0;i<n;i++) c0+=b[i]*b[i];
+  const c=new Float32Array(maxLag+2);
+  for(let lag=minLag-1;lag<=maxLag+1;lag++){let s=0; for(let i=0;i<n-lag;i++) s+=b[i]*b[i+lag]; c[lag]=s;}
+  let best=-1, bv=0;
+  for(let lag=minLag;lag<=maxLag;lag++){ if(c[lag]>c[lag-1]&&c[lag]>=c[lag+1]&&c[lag]>bv){bv=c[lag]; best=lag;} }
+  if(best<0||bv/c0<.45) return -1;
+  const x1=c[best-1],x2=c[best],x3=c[best+1], den=x1-2*x2+x3;
+  const shift = den? (x1-x3)/(2*den):0;
+  return sr/(best+shift);
+}
+function toMidi(f){return 69+12*Math.log2(f/440)}
+function midiName(m){const pc=((m%12)+12)%12; return (m<72?'低':m>=84?'高':'')+PC[pc];}
+function diffTo(f,tm){
+  let d=toMidi(f)-tm;
+  if($('#octFree').checked) d=((d+6)%12+12)%12-6;
+  return d;
+}
+function isMatch(f,tm){return f>0&&Math.abs(diffTo(f,tm))<.5}
+
+/* ---------- practice ---------- */
+let inPrac=false, startIdx=0, running=null, rafOn=false;
+function setStatus(s){$('#status').textContent=s}
+function firstNote(i){for(let k=Math.max(0,i);k<cur.items.length;k++) if(isNote(cur.items[k].n)) return k; return -1}
+function cardOf(i){return $('#pracScore').querySelector(`[data-i="${i}"]`)}
+function showNow(i){
+  const it=cur.items[i];
+  $('#bigFing').innerHTML = it&&isNote(it.n)?fingSVG(it.n):'<div class="restmark">休</div>';
+  $('#nowName').textContent = !it?'—':it.n==='R'?'休み':LABEL[it.n];
+  const nx=firstNote(i+1);
+  $('#nextName').textContent = nx>=0?LABEL[cur.items[nx].n]:'おわり';
+}
+function markCur(i){
+  $('#pracScore').querySelectorAll('.cur').forEach(c=>c.classList.remove('cur'));
+  const c=cardOf(i); if(c){c.classList.add('cur'); c.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+}
+function clearMarks(){$('#pracScore').querySelectorAll('.ok,.ng,.cur').forEach(c=>c.classList.remove('ok','ng','cur'))}
+function setModeBtn(m){document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===m))}
+
+function openPrac(s){
+  cur=s; show('vPrac'); inPrac=true;
+  $('#pracTitle').textContent=s.title||'無題';
+  $('#pBpm').value=s.bpm; $('#pBpmVal').textContent=s.bpm;
+  $('#pracScore').innerHTML=s.items.length?s.items.map(cardHTML).join(''):'<p class="empty">まだ音がありません。「編集」から追加してください。</p>';
+  startIdx=Math.max(0,firstNote(0)); showNow(startIdx); markCur(startIdx); setStatus('');
+  if(!rafOn){rafOn=true; requestAnimationFrame(frame);}
+}
+function leavePrac(){ if(!inPrac) return; inPrac=false; stopRun(true); stopMic(); }
+$('#pBpm').addEventListener('input',e=>$('#pBpmVal').textContent=e.target.value);
+$('#pracScore').addEventListener('click',e=>{
+  const c=e.target.closest('[data-i]'); if(!c||running) return;
+  const i=+c.dataset.i; if(cur.items[i].n==='|') return;
+  startIdx=i; clearMarks(); markCur(i); showNow(i);
+  if(isNote(cur.items[i].n)) preview(cur.items[i].n);
+});
+$('#pracBack').addEventListener('click',()=>{show('vList'); renderList();});
+$('#pracEdit').addEventListener('click',()=>openEdit(cur));
+$('#stopBtn').addEventListener('click',()=>{ if(running){stopRun(false);} });
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.mode)));
+
+async function startRun(mode){
+  const a=ac(); stopRun(true);
+  if(mode!=='play'){ setStatus('マイクを準備中…'); if(!(await ensureMic())) return; }
+  const beat=60/(+$('#pBpm').value);
+  const events=[]; let t=0;
+  for(let k=startIdx;k<cur.items.length;k++){
+    const it=cur.items[k]; if(it.n==='|') continue;
+    const d=it.b*beat; events.push({i:k,n:it.n,s:t,e:t+d}); t+=d;
+  }
+  if(!events.some(e=>isNote(e.n))){setStatus('練習できる音がありません'); return;}
+  clearMarks(); setModeBtn(mode);
+  if(mode==='wait'){
+    running={mode,events,p:0,hold:null,ok:0};
+    setStatus('表示された音を吹いてください。合うと次へ進みます');
+    advanceWait(0); return;
+  }
+  const lead=4*beat, t0=a.currentTime+.15+lead;
+  for(let k=0;k<4;k++) click(t0-lead+k*beat,k===0);
+  if($('#metro').checked) for(let k=0;k*beat<t-1e-6;k++) click(t0+k*beat,k%4===0);
+  if(mode==='play'||$('#guide').checked) events.forEach(ev=>{ if(isNote(ev.n)) tone(MIDI[ev.n],t0+ev.s,Math.max(.08,(ev.e-ev.s)*.92)); });
+  running={mode,events,t0,beat,total:t,idx:-1,stats:events.map(()=>({h:0,n:0,j:null}))};
+}
+function advanceWait(p){
+  const ev=running.events;
+  while(p<ev.length&&!isNote(ev[p].n)) p++;
+  running.p=p; running.hold=null;
+  if(p>=ev.length){finishRun(); return;}
+  markCur(ev[p].i); showNow(ev[p].i);
+}
+function finalize(k){
+  if(!running||running.mode!=='tempo'||k<0) return;
+  const ev=running.events[k]; if(!isNote(ev.n)) return;
+  const st=running.stats[k]; if(st.n<2) return;
+  st.j = st.h/st.n>=.4;
+  const c=cardOf(ev.i); if(c) c.classList.add(st.j?'ok':'ng');
+}
+function finishRun(){
+  const r=running; if(!r) return;
+  if(r.mode==='tempo'){
+    const js=r.stats.filter(s=>s.j!==null), ok=js.filter(s=>s.j).length;
+    setStatus(js.length?`${ok} / ${js.length} 音が合っていました（${Math.round(ok/js.length*100)}%）`:'音が聞き取れませんでした。マイクに近づいてもう一度どうぞ');
+  } else if(r.mode==='wait') setStatus('最後まで吹けました！');
+  else setStatus('');
+  running=null; setModeBtn(null);
+  $('#pracScore').querySelectorAll('.cur').forEach(c=>c.classList.remove('cur'));
+}
+function stopRun(silent){
+  stopAudio();
+  if(running){running=null; setModeBtn(null); if(!silent) setStatus('止めました');}
+}
+function targetMidi(){
+  if(running){
+    const ev = running.mode==='wait'?running.events[running.p]:running.events[running.idx];
+    return ev&&isNote(ev.n)?MIDI[ev.n]:null;
+  }
+  const it=cur&&cur.items[startIdx]; return it&&isNote(it.n)?MIDI[it.n]:null;
+}
+function updateTuner(f){
+  const nd=$('#needle');
+  if(!analyser) return;
+  if(f<0){$('#heard').textContent='（聞こえていません）'; nd.style.display='none'; return;}
+  const m=toMidi(f), tm=targetMidi();
+  const d = tm!=null? diffTo(f,tm) : m-Math.round(m);
+  const cents=Math.max(-100,Math.min(100,d*100));
+  nd.style.display='block'; nd.style.left=(50+cents/2)+'%';
+  nd.classList.toggle('good',Math.abs(d)<.5);
+  $('#heard').textContent=`${midiName(Math.round(m))}　${Math.round(f)}Hz`;
+}
+function frame(){
+  if(!inPrac){rafOn=false; return;}
+  let f=-1;
+  if(analyser){analyser.getFloatTimeDomainData(buf); f=detectPitch(buf,actx.sampleRate);}
+  updateTuner(f);
+  if(running) step(f);
+  requestAnimationFrame(frame);
+}
+function step(f){
+  const r=running;
+  if(r.mode==='wait'){
+    const ev=r.events[r.p]; if(!ev) return;
+    const now=performance.now()/1000;
+    if(isMatch(f,MIDI[ev.n])){
+      if(r.hold==null) r.hold=now;
+      else if(now-r.hold>=.22){ const c=cardOf(ev.i); if(c) c.classList.add('ok'); r.ok++; advanceWait(r.p+1); }
+    } else r.hold=null;
+    return;
+  }
+  const now=actx.currentTime-r.t0;
+  if(now<0){ setStatus(`カウント ${Math.min(4,Math.ceil(-now/r.beat))}`); return; }
+  if(now>=r.total){ finalize(r.idx); finishRun(); return; }
+  let idx=r.idx;
+  while(idx+1<r.events.length&&r.events[idx+1].s<=now) idx++;
+  if(idx!==r.idx){
+    finalize(r.idx); r.idx=idx;
+    markCur(r.events[idx].i); showNow(r.events[idx].i);
+    setStatus(r.mode==='tempo'?'採点中…':'お手本を再生中');
+  }
+  if(r.mode==='tempo'&&idx>=0){
+    const e=r.events[idx];
+    if(isNote(e.n)&&now>e.s+Math.min(.12,(e.e-e.s)*.3)){
+      const st=r.stats[idx]; st.n++; if(isMatch(f,MIDI[e.n])) st.h++;
+    }
+  }
+}
+
+/* ---------- boot ---------- */
+const saved=lsGet();
+scores = Array.isArray(saved)?saved:[sample()];
+if(!Array.isArray(saved)) lsSet(scores);
+renderList();
+initRemote();
+})();
+</script>
+</body>
+</html>
